@@ -1,0 +1,3 @@
+[submodule "EventTargetImpl"]
+	path = EventTargetImpl
+	url = https://github.com/MarkMYoung/EventTargetImpl.git
