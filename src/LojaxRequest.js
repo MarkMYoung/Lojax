@@ -292,8 +292,8 @@ var LojaxRequest = (function( window, LojaxAdapter, EventTargetImpl, undefined )
 				self.readyState = XMLHttpRequest.HEADERS_RECEIVED;
 				self.readyState = XMLHttpRequest.LOADING;
 
-				var status_str = Object.keys( responseStatusValuePair ).shift();
-				var response_value = responseStatusValuePair[ status_str ];
+				var status_key = Object.keys( responseStatusValuePair ).shift();
+				var response_value = responseStatusValuePair[ status_key ];
 				readOnlyProperties.responseText = ((typeof( response_value ) === 'object')
 						?(JSON.stringify( response_value ))
 						:((!!response_value)?(response_value):(null)));
@@ -314,7 +314,7 @@ var LojaxRequest = (function( window, LojaxAdapter, EventTargetImpl, undefined )
 						catch( exc ){}
 					}*/
 				}
-				readOnlyProperties.status = parseInt( status_str, 10 );
+				readOnlyProperties.status = window.parseInt( status_key, 10 );
 				readOnlyProperties.statusText = LojaxAdapter.StatusTextByCode[ readOnlyProperties.status ];
 				//? self.dispatchEvent({'currentTarget':self, 'target':self, 'type':'error',});
 				// Update 'readyState' last because it triggers 'readystatechange'.
@@ -322,13 +322,18 @@ var LojaxRequest = (function( window, LojaxAdapter, EventTargetImpl, undefined )
 				//if( false )
 				//{throw( Error());}
 			})
-			.fail( function( responseObj )
+			.fail( function( responseStatusValuePair )
 			{
 				//window.console.debug( "LojaxRequest failing..." );
+				var status_key = Object.keys( responseStatusValuePair ).shift();
+				readOnlyProperties.status = window.parseInt( status_key, 10 );
+				readOnlyProperties.statusText = status_key.concat( ' (', 
+					LojaxAdapter.StatusTextByCode[ readOnlyProperties.status ],
+					'): ', responseStatusValuePair[ status_key ]);
 				self.dispatchEvent( 'error' );
 				self.readyState = XMLHttpRequest.DONE;
-				if( responseObj instanceof Error )
-				{throw( responseObj );}
+				if( responseStatusValuePair instanceof Error )
+				{throw( responseStatusValuePair );}
 			});
 			cachedParams.data = data;
 			cachedParams.requestHeaders = requestHeaders;
@@ -357,7 +362,7 @@ var LojaxRequest = (function( window, LojaxAdapter, EventTargetImpl, undefined )
 		this.setRequestHeader = function( header, value )
 		{
 			header = headerKeyCamelCase( header );
-			window.console.info( "LojaxRequest setRequestHeader(", header, ", ", value, ")." );
+			//window.console.info( "LojaxRequest setRequestHeader(", header, ", ", value, ")." );
 			if( this.readyState !== XMLHttpRequest.OPENED )
 			{throw( new Error( "LojaxRequest setRequestHeader must be called when 'readyState' is OPENED (after 'open', but before 'send')." ));}
 			requestHeaders[ header ] = value;
@@ -373,12 +378,12 @@ var LojaxRequest = (function( window, LojaxAdapter, EventTargetImpl, undefined )
 		});
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 	}
-	LojaxRequest.prototype = new Object();//new XMLHttpRequest();
+	LojaxRequest.prototype = new window.XMLHttpRequest();
 	LojaxRequest.prototype.constructor = LojaxRequest;
 	Object.defineProperties( LojaxRequest, 
 	{
 		// Setting 'processData' to false is HIGHLY recommended.
-		'lojaxSettings':{'value':{/*'isLocal':true, */'processData':false,}, 'writable':true,},
+		'lojaxSettings':{'value':{'contentType':'application/json', /*'isLocal':true, */'processData':false, 'timeout':15 * 1000,}, 'writable':true,},
 		'lojaxSetup':{'value':function( lojaxOptions )
 		{
 			for( var m in lojaxOptions )

@@ -15,12 +15,14 @@ var LojaxAdapter = (function( undefined )
 		'StatusTextByCode':{'value':
 		{
 			200:'OK',
+			201:'Created',
 			202:'Accepted',
 			204:'No Content',
 			206:'Partial Content',
 			304:'Not Modified',
 			400:'Bad Request',
 			404:'Not Found',
+			408:'Request Timeout',
 			412:'Precondition Failed',
 			500:'Internal Server Error',
 		}, 'writable':false,},
