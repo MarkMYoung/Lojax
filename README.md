@@ -70,4 +70,5 @@ The most important things to remember are:
 
 To-Do List:
 
-1. Add query-by-example (QBE) capabilities to use in conjuction with `jQuery.ajax`'s `dataFilter` setting.
+1. Add my (jQuery) QUnit tests to the repo.
+2. Add [DataFilter](https://github.com/MarkMYoung/DataFilter "MarkMYoung/DataFilter") example using `jQuery.ajax`'s 'dataFilter' setting.
