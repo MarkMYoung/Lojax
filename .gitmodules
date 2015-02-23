@@ -1,6 +1,3 @@
-[submodule "EventTargetImpl"]
-	path = EventTargetImpl
-	url = https://github.com/MarkMYoung/EventTargetImpl.git
 [submodule "dep/EventTargetImpl"]
 	path = dep/EventTargetImpl
 	url = git://github.com/MarkMYoung/EventTargetImpl
