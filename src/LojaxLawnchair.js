@@ -5,7 +5,7 @@
 created 2014-02-09
 */
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
-var LojaxLawnchair = (function( window, LojaxAdapter, Lawnchair, undefined )
+var LojaxLawnchair = (function( window, LojaxAdapter, Lawnchair, $, undefined )
 {
 	function LojaxLawnchair()
 	{
@@ -26,18 +26,23 @@ var LojaxLawnchair = (function( window, LojaxAdapter, Lawnchair, undefined )
 			switch( txParams.openMethod )
 			{
 				case 'DELETE':
-					lawnchairInstance.exists( row_key, function( exists )
+					// Changed to status 200 with deleted object.
+					//lawnchairInstance.exists( row_key, function( exists )
+					lawnchairInstance.get( row_key, function( result )
 					{
-						if( exists )
+						// Changed to status 200 with deleted object.
+						//if( exists )
+						if( result !== undefined )
 						{
-							lawnchairInstance.remove( row_key, 
-								function delete_result( result )
-								{
-									var lojaxResponse = {};
-									lojaxResponse[ LojaxAdapter.HttpStatus.NO_CONTENT ] = undefined;
-									//$deferred.resolve.call( this, lojaxResponse );
-									$deferred.resolveWith( this, [lojaxResponse, 'success', txParams.xhr]);
-								});
+							lawnchairInstance.remove( row_key, function delete_result()
+							{
+								var lojaxResponse = {};
+								// Changed to status 200 with deleted object.
+								//lojaxResponse[ LojaxAdapter.HttpStatus.NO_CONTENT ] = undefined;
+								lojaxResponse[ LojaxAdapter.HttpStatus.OK ] = result;
+								//$deferred.resolve.call( this, lojaxResponse );
+								$deferred.resolveWith( this, [lojaxResponse, 'success', txParams.xhr]);
+							});
 						}
 						else
 						{
@@ -80,7 +85,7 @@ var LojaxLawnchair = (function( window, LojaxAdapter, Lawnchair, undefined )
 						var lawnchair_method = ((txParams.data instanceof Array)?('batch'):('save'));
 						lawnchairInstance[ lawnchair_method ](
 							//{'key':row_key, 'value':txParams.data,}, 
-							angular.extend({'key':row_key}, txParams.data ),
+							$.extend( true, {'key':row_key}, txParams.data ),
 							function post_result( result )
 							{
 								var value = result;// && result.value;
@@ -110,7 +115,7 @@ var LojaxLawnchair = (function( window, LojaxAdapter, Lawnchair, undefined )
 						var lawnchair_method = ((txParams.data instanceof Array)?('batch'):('save'));
 						lawnchairInstance[ lawnchair_method ](
 							//{'key':row_key, 'value':txParams.data,}, 
-							angular.extend({'key':row_key}, txParams.data ),
+							$.extend( true, {'key':row_key}, txParams.data ),
 							function put_result( result )
 							{
 								var value = result;// && result.value;
@@ -146,5 +151,5 @@ var LojaxLawnchair = (function( window, LojaxAdapter, Lawnchair, undefined )
 	LojaxLawnchair.prototype = new LojaxAdapter();
 	LojaxLawnchair.prototype.constructor = LojaxLawnchair;
 	return( LojaxLawnchair );
-})( window, LojaxAdapter, Lawnchair );
+})( window, LojaxAdapter, Lawnchair, jQuery );
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//

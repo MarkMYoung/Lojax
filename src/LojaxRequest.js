@@ -5,7 +5,7 @@
 created 2014-02-07
 */
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
-var LojaxRequest = (function( window, LojaxAdapter, EventTargetImpl, undefined )
+var LojaxRequest = (function LojaxRequest_module( window, LojaxAdapter, EventTargetImpl, undefined )
 {
 	function LojaxUpload()
 	{
@@ -19,7 +19,7 @@ var LojaxRequest = (function( window, LojaxAdapter, EventTargetImpl, undefined )
 		//	invoked without special consideration.
 		var upload_event_names = ['abort', 'error', 
 			'load', 'loadend', 'loadstart', 'progress'];
-		upload_event_names.forEach( function( evt_name, e )
+		upload_event_names.forEach( function for_each_upload_event_name( evt_name, e )
 		{
 			var on_name = 'on'.concat( evt_name );
 			writableProperties[ on_name ] = null;
@@ -83,7 +83,7 @@ var LojaxRequest = (function( window, LojaxAdapter, EventTargetImpl, undefined )
 		var download_event_names = ['abort', 'error', 
 			'load', 'loadend', 'loadstart', 'progress', 
 			'readystatechange', 'timeout'];
-		download_event_names.forEach( function( evt_name, e )
+		download_event_names.forEach( function for_each_download_event_name( evt_name, e )
 		{
 			var on_name = 'on'.concat( evt_name );
 			writableProperties[ on_name ] = null;
@@ -110,12 +110,12 @@ var LojaxRequest = (function( window, LojaxAdapter, EventTargetImpl, undefined )
 			// Use accessor descriptor to trigger 'onreadystatechange'.
 			'readyState':
 			{'enumerable':true, 
-				'get':function()
+				'get':function readyState_getter()
 				{
 					//window.console.debug( "LojaxRequest readyState get", writableProperties.readyState );
 					return( writableProperties.readyState );
 				},
-				'set':function( value )
+				'set':function readyState_setter( value )
 				{
 					//window.console.info( "LojaxRequest readyState set", value );
 					//var progressEvent = {'lengthComputable':false, 
@@ -163,7 +163,7 @@ var LojaxRequest = (function( window, LojaxAdapter, EventTargetImpl, undefined )
 			//	but assignable internally.
 			'responseText':
 			{'enumerable':true, 
-				'get':function()
+				'get':function responseTextGetter()
 				{return( readOnlyProperties.responseText );},
 			},
 			// Use data decriptor to prevent mangling.
@@ -173,7 +173,7 @@ var LojaxRequest = (function( window, LojaxAdapter, EventTargetImpl, undefined )
 			//	but assignable internally.
 			'responseXML':
 			{'enumerable':true, 
-				'get':function()
+				'get':function responseXML_getter()
 				{
 					//window.console.debug( "LojaxRequest responseXML get" );
 					return( readOnlyProperties.responseXML );
@@ -183,7 +183,7 @@ var LojaxRequest = (function( window, LojaxAdapter, EventTargetImpl, undefined )
 			//	but assignable internally.
 			'status':
 			{'enumerable':true, 
-				'get':function()
+				'get':function status_getter()
 				{
 					//window.console.debug( "LojaxRequest status get" );
 					return( readOnlyProperties.status );
@@ -193,7 +193,7 @@ var LojaxRequest = (function( window, LojaxAdapter, EventTargetImpl, undefined )
 			//	but assignable internally.
 			'statusText':
 			{'enumerable':true, 
-				'get':function()
+				'get':function statusText_getter()
 				{
 					//window.console.debug( "LojaxRequest statusText get" );
 					return( readOnlyProperties.statusText );
@@ -213,14 +213,14 @@ var LojaxRequest = (function( window, LojaxAdapter, EventTargetImpl, undefined )
 		// Member functions are inside the constructor to allow access to the 
 		//	hidden property objects.
 		// @returns void
-		this.abort = function()
+		this.abort = function abort()
 		{
 			//window.console.debug( "LojaxRequest abort()." );
 			//? $deferred.reject( "abort" );
 			this.dispatchEvent( 'abort' );
 		};
 		// @returns string or null
-		this.getAllResponseHeaders = function()
+		this.getAllResponseHeaders = function getAllResponseHeaders()
 		{
 			//window.console.debug( "LojaxRequest getAllResponseHeaders()." );
 			var all_response_headers = Object.keys( responseHeaders )
@@ -233,13 +233,13 @@ var LojaxRequest = (function( window, LojaxAdapter, EventTargetImpl, undefined )
 			return( all_response_headers );
 		};
 		// @returns string or null
-		this.getResponseHeader = function( header )
+		this.getResponseHeader = function getResponseHeader( header )
 		{
 			//window.console.info( "LojaxRequest getResponseHeader(", header, ")." );
 			return( responseHeaders[ header ]);
 		};
 		// @returns void
-		this.open = function( method, url, async, username, password )
+		this.open = function open( method, url, async, username, password )
 		{
 			//window.console.warn( "LojaxRequest 'open(", method, ",", url, ",", async, ",", username, ",", password, ")" );
 			//window.console.debug( "LojaxRequest open(", method, ", ", url, ", ", async, ", ", username, ", ", password, ")." );
@@ -261,7 +261,7 @@ var LojaxRequest = (function( window, LojaxAdapter, EventTargetImpl, undefined )
 			//{window.console.error( exc );/*throw( exc );*/}
 		};
 		// @returns void
-		this.overrideMimeType = function( mime_type )
+		this.overrideMimeType = function overrideMimeType( mime_type )
 		{
 			//window.console.info( "LojaxRequest overrideMimeType(", mime, ")." );
 			if( this.readyState > XMLHttpRequest.OPENED )
@@ -269,12 +269,12 @@ var LojaxRequest = (function( window, LojaxAdapter, EventTargetImpl, undefined )
 			overriddenMimeType = mime_type;
 		};
 		// @returns void
-		this.send = function( data )
+		this.send = function send( data )
 		{
 			//window.console.debug( "LojaxRequest send(", data, ")." );
 			var $promise = $deferred.promise();
 			// If useing jQuery, this is passed via 'xhrFields.timeout', NOT 'timeout'.
-			if( !isNaN( self.timeout ) && self.timeout > 0 )
+			if( !window.isNaN( self.timeout ) && self.timeout > 0 )
 			{
 				var timeout_id = window.setTimeout( function set_send_timeout()
 				{
@@ -286,7 +286,21 @@ var LojaxRequest = (function( window, LojaxAdapter, EventTargetImpl, undefined )
 					window.clearTimeout( timeout_id );
 				});
 			}
-			$promise.done( function( responseStatusValuePair )
+			$promise
+			.fail( function send_failure( responseStatusValuePair )
+			{
+				//window.console.debug( "LojaxRequest failing..." );
+				var status_key = Object.keys( responseStatusValuePair ).shift();
+				readOnlyProperties.status = window.parseInt( status_key, 10 );
+				readOnlyProperties.statusText = status_key.concat( ' (', 
+					LojaxAdapter.StatusTextByCode[ readOnlyProperties.status ],
+					'): ', responseStatusValuePair[ status_key ]);
+				self.dispatchEvent( 'error' );
+				self.readyState = XMLHttpRequest.DONE;
+				if( responseStatusValuePair instanceof Error )
+				{throw( responseStatusValuePair );}
+			})
+			.done( function send_success( responseStatusValuePair )
 			{
 				//window.console.debug( "LojaxRequest resolving..." );
 				self.readyState = XMLHttpRequest.HEADERS_RECEIVED;
@@ -295,14 +309,12 @@ var LojaxRequest = (function( window, LojaxAdapter, EventTargetImpl, undefined )
 				var status_key = Object.keys( responseStatusValuePair ).shift();
 				var response_value = responseStatusValuePair[ status_key ];
 				readOnlyProperties.responseText = ((typeof( response_value ) === 'object')
-						?(JSON.stringify( response_value ))
-						:((!!response_value)?(response_value):(null)));
+					?(JSON.stringify( response_value ))
+					:((!!response_value)?(response_value):(null)));
 				responseHeaders['Content-Length'] = readOnlyProperties.responseText 
 					&& readOnlyProperties.responseText.length || 0;
 				if( self.responseType === 'text' )
-				{
-					self.response = readOnlyProperties.responseText;
-				}
+				{self.response = readOnlyProperties.responseText;}
 				else if( self.responseType === 'json' )
 				{
 					self.response = ((typeof( response_value ) === 'string')
@@ -321,19 +333,6 @@ var LojaxRequest = (function( window, LojaxAdapter, EventTargetImpl, undefined )
 				self.readyState = XMLHttpRequest.DONE;
 				//if( false )
 				//{throw( Error());}
-			})
-			.fail( function( responseStatusValuePair )
-			{
-				//window.console.debug( "LojaxRequest failing..." );
-				var status_key = Object.keys( responseStatusValuePair ).shift();
-				readOnlyProperties.status = window.parseInt( status_key, 10 );
-				readOnlyProperties.statusText = status_key.concat( ' (', 
-					LojaxAdapter.StatusTextByCode[ readOnlyProperties.status ],
-					'): ', responseStatusValuePair[ status_key ]);
-				self.dispatchEvent( 'error' );
-				self.readyState = XMLHttpRequest.DONE;
-				if( responseStatusValuePair instanceof Error )
-				{throw( responseStatusValuePair );}
 			});
 			cachedParams.data = data;
 			cachedParams.requestHeaders = requestHeaders;
@@ -345,10 +344,11 @@ var LojaxRequest = (function( window, LojaxAdapter, EventTargetImpl, undefined )
 					{window.console.warn( "LojaxRequest 'send' called with empty 'data' on", cachedParams.openMethod, "method." );}
 					// Fall through.
 				case 'DELETE':case 'GET':
-					adapterInstance.sendQuery( cachedParams ).done( function( responseData, status_text, jqXHR )
-					{$deferred.resolve( responseData );})
-					.fail( function( jqXHR, status_text, error_thrown )
-					{$deferred.reject( error_thrown );});
+					adapterInstance.sendQuery( cachedParams )
+						.fail( function sendQuery_failure( jqXHR, status_text, error_thrown )
+						{$deferred.reject( error_thrown );})
+						.done( function sendQuery_success( responseData, status_text, jqXHR )
+						{$deferred.resolve( responseData );});
 					break;
 				case 'OPTIONS':
 					window.console.warn( "Unimplemented LojaxRequest 'method' value:", cachedParams.openMethod, "." );
@@ -359,7 +359,7 @@ var LojaxRequest = (function( window, LojaxAdapter, EventTargetImpl, undefined )
 			}
 		};
 		// @returns void
-		this.setRequestHeader = function( header, value )
+		this.setRequestHeader = function setRequestHeader( header, value )
 		{
 			header = headerKeyCamelCase( header );
 			//window.console.info( "LojaxRequest setRequestHeader(", header, ", ", value, ")." );
@@ -370,7 +370,7 @@ var LojaxRequest = (function( window, LojaxAdapter, EventTargetImpl, undefined )
 		// This method is added so adapters can pass information in headers.
 		Object.defineProperties( this, 
 		{
-			'setResponseHeader':{'value':function( header, value )
+			'setResponseHeader':{'value':function setResponseHeader( header, value )
 			{
 				header = headerKeyCamelCase( header );
 				responseHeaders[ header ] = value;
@@ -384,27 +384,28 @@ var LojaxRequest = (function( window, LojaxAdapter, EventTargetImpl, undefined )
 	{
 		// Setting 'processData' to false is HIGHLY recommended.
 		'lojaxSettings':{'value':{'contentType':'application/json', /*'isLocal':true, */'processData':false, 'timeout':15 * 1000,}, 'writable':true,},
-		'lojaxSetup':{'value':function( lojaxOptions )
+		'lojaxSetup':{'value':function lojaxSetup( lojaxOptions )
 		{
 			for( var m in lojaxOptions )
 			{this.lojaxSettings[ m ] = lojaxOptions[ m ];}
 		}, 'writable':false,},
-		'findRequestHeader':{'value':function( requestHeaders, header )
+		'findRequestHeader':{'value':function findRequestHeader( requestHeaders, header )
 		{
 			header = headerKeyCamelCase( header );
-			var value = Object.keys( requestHeaders ).reduce( function( result, key, i )
-			{
-				if( key === header )
-				{result = requestHeaders[ key ];}
-				return( result );
-			}, null );
+			var value = Object.keys( requestHeaders )
+				.reduce( function( result, key, i )
+				{
+					if( key === header )
+					{result = requestHeaders[ key ];}
+					return( result );
+				}, null );
 			return( value );
 		}, 'writable':false,},
 	});
 	return( LojaxRequest );
 })( window, LojaxAdapter, EventTargetImpl );
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
-/*var LojaxResponse = (function( window, undefined )
+/*var LojaxResponse = (function LojaxResponse_module( window, undefined )
 {
 	function LojaxResponse( method, url, status_code, status_text )
 	{
