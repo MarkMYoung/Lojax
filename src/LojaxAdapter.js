@@ -8,7 +8,7 @@ created 2014-02-07
 var LojaxAdapter = (function( undefined )
 {
 	function LojaxAdapter(){}
-	LojaxAdapter.prototype = new Object();
+	LojaxAdapter.prototype = Object.create( Object.prototype );
 	LojaxAdapter.prototype.constructor = LojaxAdapter;
 	Object.defineProperties( LojaxAdapter, 
 	{

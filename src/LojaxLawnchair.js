@@ -36,46 +36,67 @@ var LojaxLawnchair = (function( window, LojaxAdapter, Lawnchair, $, undefined )
 						{
 							lawnchairInstance.remove( row_key, function delete_result()
 							{
-								var lojaxResponse = {};
 								// Changed to status 200 with deleted object.
-								//lojaxResponse[ LojaxAdapter.HttpStatus.NO_CONTENT ] = undefined;
-								lojaxResponse[ LojaxAdapter.HttpStatus.OK ] = result;
+								//var lojaxResponse = {'response':undefined, 'status':LojaxAdapter.HttpStatus.NO_CONTENT};
+								var lojaxResponse = {'response':result, 'status':LojaxAdapter.HttpStatus.OK};
 								//$deferred.resolve.call( this, lojaxResponse );
 								$deferred.resolveWith( this, [lojaxResponse, 'success', txParams.xhr]);
 							});
 						}
 						else
 						{
-							var lojaxResponse = {};
-							lojaxResponse[ LojaxAdapter.HttpStatus.NOT_FOUND ] = row_key;//undefined;
+							var lojaxResponse = {'response':row_key, 'status':LojaxAdapter.HttpStatus.NOT_FOUND};
 							//$deferred.reject.call( this, lojaxResponse );
 							$deferred.rejectWith( this, [txParams.xhr, 'error', lojaxResponse]);
 						}
 					});
 					break;
 				case 'GET':
-					lawnchairInstance.get( row_key, 
-					function get_result( result )
+					if( row_key === '*' )
 					{
-						var value = result;// && result.value;
-						if( value )
+						lawnchairInstance.keys(
+						function keys_result( row_keys )
 						{
-							//txParams.xhr.setResponseHeader( 'Last-Modified', (new Date()).toGMTString());
-							//window.console.debug( "Request headers:", txParams.requestHeaders );
-							var lojaxResponse = {};
-							lojaxResponse[ LojaxAdapter.HttpStatus.OK ] = value;
-							//$deferred.resolve.call( this, lojaxResponse );
-							$deferred.resolveWith( this, [lojaxResponse, 'success', txParams.xhr]);
-						}
-						else
+							lawnchairInstance.get( row_keys, 
+							function get_result( result )
+							{
+								var value = result;
+								if( value )
+								{
+									var lojaxResponse = {'response':value, 'status':LojaxAdapter.HttpStatus.OK};
+									$deferred.resolveWith( this, [lojaxResponse, 'success', txParams.xhr]);
+								}
+								else
+								{
+									var lojaxResponse = {'response':row_key, 'status':LojaxAdapter.HttpStatus.NOT_FOUND};
+									$deferred.rejectWith( this, [txParams.xhr, 'error', lojaxResponse]);
+								}
+							});
+						});
+					}
+					else
+					{
+						lawnchairInstance.get( row_key, 
+						function get_result( result )
 						{
-							var lojaxResponse = {};
-							lojaxResponse[ LojaxAdapter.HttpStatus.NOT_FOUND ] = row_key;//undefined;
-							//window.console.error( txParams );
-							//$deferred.reject.call( this, lojaxResponse );
-							$deferred.rejectWith( this, [txParams.xhr, 'error', lojaxResponse]);
-						}
-					});
+							var value = result;// && result.value;
+							if( value )
+							{
+								//txParams.xhr.setResponseHeader( 'Last-Modified', (new Date()).toGMTString());
+								//window.console.debug( "Request headers:", txParams.requestHeaders );
+								var lojaxResponse = {'response':value, 'status':LojaxAdapter.HttpStatus.OK};
+								//$deferred.resolve.call( this, lojaxResponse );
+								$deferred.resolveWith( this, [lojaxResponse, 'success', txParams.xhr]);
+							}
+							else
+							{
+								var lojaxResponse = {'response':row_key, 'status':LojaxAdapter.HttpStatus.NOT_FOUND};
+								//window.console.error( txParams );
+								//$deferred.reject.call( this, lojaxResponse );
+								$deferred.rejectWith( this, [txParams.xhr, 'error', lojaxResponse]);
+							}
+						});
+					}
 					break;
 				case 'POST':
 					lawnchairInstance.exists( row_key, function( exists )
@@ -91,15 +112,13 @@ var LojaxLawnchair = (function( window, LojaxAdapter, Lawnchair, $, undefined )
 								var value = result;// && result.value;
 								if( value )
 								{
-									var lojaxResponse = {};
-									lojaxResponse[ LojaxAdapter.HttpStatus.CREATED ] = value;
+									var lojaxResponse = {'response':value, 'status':LojaxAdapter.HttpStatus.CREATED};
 									//$deferred.resolve.call( this, lojaxResponse );
 									$deferred.resolveWith( this, [lojaxResponse, 'success', txParams.xhr]);
 								}
 								else
 								{
-									var lojaxResponse = {};
-									lojaxResponse[ LojaxAdapter.HttpStatus.INTERNAL_SERVER_ERROR ] = row_key;//undefined;
+									var lojaxResponse = {'response':row_key, 'status':LojaxAdapter.HttpStatus.INTERNAL_SERVER_ERROR};
 									//window.console.error( txParams );
 									//$deferred.reject.call( this, lojaxResponse );
 									$deferred.rejectWith( this, [txParams.xhr, 'error', lojaxResponse]);
@@ -121,15 +140,13 @@ var LojaxLawnchair = (function( window, LojaxAdapter, Lawnchair, $, undefined )
 								var value = result;// && result.value;
 								if( value )
 								{
-									var lojaxResponse = {};
-									lojaxResponse[ LojaxAdapter.HttpStatus.CREATED ] = value;
+									var lojaxResponse = {'response':value, 'status':LojaxAdapter.HttpStatus.CREATED};
 									//$deferred.resolve.call( this, lojaxResponse );
 									$deferred.resolveWith( this, [lojaxResponse, 'success', txParams.xhr]);
 								}
 								else
 								{
-									var lojaxResponse = {};
-									lojaxResponse[ LojaxAdapter.HttpStatus.INTERNAL_SERVER_ERROR ] = row_key;//undefined;
+									var lojaxResponse = {'response':row_key, 'status':LojaxAdapter.HttpStatus.INTERNAL_SERVER_ERROR};
 									//window.console.error( txParams );
 									//$deferred.reject.call( this, lojaxResponse );
 									$deferred.rejectWith( this, [txParams.xhr, 'error', lojaxResponse]);
@@ -139,8 +156,7 @@ var LojaxLawnchair = (function( window, LojaxAdapter, Lawnchair, $, undefined )
 					break;
 				default:
 					window.console.error( "Unexpected LojaxLawnchair 'method' value:", txParams.method, "." );
-					var lojaxResponse = {};
-					lojaxResponse[ LojaxAdapter.HttpStatus.INTERNAL_SERVER_ERROR ] = txParams;//undefined;
+					var lojaxResponse = {'response':txParams, 'status':LojaxAdapter.HttpStatus.INTERNAL_SERVER_ERROR};
 					//$deferred.resolve.call( this, lojaxResponse );
 					$deferred.resolveWith( this, [lojaxResponse, 'success', txParams.xhr]);
 					break;
@@ -148,7 +164,7 @@ var LojaxLawnchair = (function( window, LojaxAdapter, Lawnchair, $, undefined )
 			return( $deferred.promise());
 		};
 	}
-	LojaxLawnchair.prototype = new LojaxAdapter();
+	LojaxLawnchair.prototype = Object.create( LojaxAdapter.prototype );
 	LojaxLawnchair.prototype.constructor = LojaxLawnchair;
 	return( LojaxLawnchair );
 })( window, LojaxAdapter, Lawnchair, jQuery );

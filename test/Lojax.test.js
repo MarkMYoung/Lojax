@@ -86,7 +86,7 @@ $(document).ready( function()
 		var localStorageXhrFactory = function()
 		{return( new LojaxRequest( lojaxLocalStorageAdapter ));};
 		var lojaxLocalPost = $.extend( true, 
-			{'data':{"I am":"an object"}, 'type':'POST', 'xhr':localStorageXhrFactory,}, 
+			{'data':{"I am":"an object"}, 'method':'POST', 'xhr':localStorageXhrFactory,}, 
 			LojaxRequest.lojaxSettings );
 		var $localPostPromise = $.ajax( 'test', lojaxLocalPost )
 		.done( function( responseData, status_text, jqXHR )
@@ -95,7 +95,7 @@ $(document).ready( function()
 		{qUnit.ok( false, logify( this.method, "fail", status_text, error_thrown ));});
 
 		var lojaxLocalDelete = $.extend( true, 
-			{'data':{"I am":"an object"}, 'type':'DELETE', 'xhr':localStorageXhrFactory,}, 
+			{'data':{"I am":"an object"}, 'method':'DELETE', 'xhr':localStorageXhrFactory,}, 
 			LojaxRequest.lojaxSettings );
 		var $localPostPromise = $.ajax( 'test', lojaxLocalDelete )
 		.done( function( responseData, status_text, jqXHR )
@@ -104,7 +104,7 @@ $(document).ready( function()
 		{ok( false, logify( this.method, "fail", status_text, error_thrown ));});
 
 		var lojaxSessionPut = $.extend( true, 
-			{'data':{"I am":"an object"}, 'type':'PUT', 'username':'sessionStorage', 'xhr':localStorageXhrFactory,}, 
+			{'data':{"I am":"an object"}, 'method':'PUT', 'username':'sessionStorage', 'xhr':localStorageXhrFactory,}, 
 			LojaxRequest.lojaxSettings );
 		var $sessionPostPromise = $.ajax( 'test', lojaxSessionPut )
 		.done( function( responseData, status_text, jqXHR )
@@ -113,7 +113,7 @@ $(document).ready( function()
 		{qUnit.ok( false, logify( this.method, "fail", status_text, error_thrown ));});
 
 		var lojaxSessionDelete = $.extend( true, 
-			{'data':{"I am":"an object"}, 'type':'DELETE', 'username':'sessionStorage', 'xhr':localStorageXhrFactory,}, 
+			{'data':{"I am":"an object"}, 'method':'DELETE', 'username':'sessionStorage', 'xhr':localStorageXhrFactory,}, 
 			LojaxRequest.lojaxSettings );
 		var $sessionPostPromise = $.ajax( 'test', lojaxSessionDelete )
 		.done( function( responseData, status_text, jqXHR )

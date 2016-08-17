@@ -1,7 +1,7 @@
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 /*
 @author Mark M. Young
-@version 1.0.0
+@version 1.0.1
 created 2014-02-07
 */
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
@@ -41,7 +41,7 @@ var LojaxRequest = (function LojaxRequest_module( window, LojaxAdapter, EventTar
 			});
 		});
 	}
-	LojaxUpload.prototype = new Object();
+	LojaxUpload.prototype = Object.create( Object.prototype );
 	LojaxUpload.prototype.constructor = LojaxUpload;
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 	function LojaxRequest( lojaxAdapter )
@@ -70,7 +70,7 @@ var LojaxRequest = (function LojaxRequest_module( window, LojaxAdapter, EventTar
 			'statusText':'',
 		};
 		var requestHeaders = {};
-		var responseHeaders = {'Content-Type':"application/json",};
+		var responseHeaders = {'Content-Type':'application/json',};
 		var writableProperties = {'readyState':XMLHttpRequest.UNSENT,};
 		function headerKeyCamelCase( header )
 		{
@@ -163,7 +163,7 @@ var LojaxRequest = (function LojaxRequest_module( window, LojaxAdapter, EventTar
 			//	but assignable internally.
 			'responseText':
 			{'enumerable':true, 
-				'get':function responseTextGetter()
+				'get':function responseText_getter()
 				{return( readOnlyProperties.responseText );},
 			},
 			// Use data decriptor to prevent mangling.
@@ -224,12 +224,15 @@ var LojaxRequest = (function LojaxRequest_module( window, LojaxAdapter, EventTar
 		{
 			//window.console.debug( "LojaxRequest getAllResponseHeaders()." );
 			var all_response_headers = Object.keys( responseHeaders )
-			.reduce( function concatentate_headers( result, header, h )
+			// XMLHttpRequest specification 4.6.5#2 says to sort them.
+			.sort()
+			.map( function concatentate_headers( header, h )
 			{
 				var value = ((header === 'Content-Type' && !!overriddenMimeType)
-					?(overriddenMimeType):(responseHeaders[ header ]));
-				return( result.concat( header, ': ', value ));
-			}, "\n" );
+					?(overriddenMimeType):(this[ header ]));
+				return( ''.concat( header, ': ', value ));
+			}, responseHeaders )
+			.join( "\r\n" );
 			return( all_response_headers );
 		};
 		// @returns string or null
@@ -287,27 +290,28 @@ var LojaxRequest = (function LojaxRequest_module( window, LojaxAdapter, EventTar
 				});
 			}
 			$promise
-			.fail( function send_failure( responseStatusValuePair )
+			.fail( function send_failure( lojaxResponse )
 			{
 				//window.console.debug( "LojaxRequest failing..." );
-				var status_key = Object.keys( responseStatusValuePair ).shift();
-				readOnlyProperties.status = window.parseInt( status_key, 10 );
-				readOnlyProperties.statusText = status_key.concat( ' (', 
-					LojaxAdapter.StatusTextByCode[ readOnlyProperties.status ],
-					'): ', responseStatusValuePair[ status_key ]);
+				readOnlyProperties.status = lojaxResponse.status;
+				readOnlyProperties.statusText = ''.concat( 
+					lojaxResponse.status, 
+					' (', LojaxAdapter.StatusTextByCode[ readOnlyProperties.status ], '): ', 
+					lojaxResponse.res4ponse 
+				);
 				self.dispatchEvent( 'error' );
 				self.readyState = XMLHttpRequest.DONE;
-				if( responseStatusValuePair instanceof Error )
-				{throw( responseStatusValuePair );}
+				if( lojaxResponse instanceof Error )
+				{throw( lojaxResponse );}
 			})
-			.done( function send_success( responseStatusValuePair )
+			.done( function send_success( lojaxResponse )
 			{
 				//window.console.debug( "LojaxRequest resolving..." );
 				self.readyState = XMLHttpRequest.HEADERS_RECEIVED;
+				// Yes, two separate assingments: assigning to 'readyState' triggers events.
 				self.readyState = XMLHttpRequest.LOADING;
 
-				var status_key = Object.keys( responseStatusValuePair ).shift();
-				var response_value = responseStatusValuePair[ status_key ];
+				var response_value = lojaxResponse.response;
 				readOnlyProperties.responseText = ((typeof( response_value ) === 'object')
 					?(JSON.stringify( response_value ))
 					:((!!response_value)?(response_value):(null)));
@@ -326,8 +330,8 @@ var LojaxRequest = (function LojaxRequest_module( window, LojaxAdapter, EventTar
 						catch( exc ){}
 					}*/
 				}
-				readOnlyProperties.status = window.parseInt( status_key, 10 );
-				readOnlyProperties.statusText = LojaxAdapter.StatusTextByCode[ readOnlyProperties.status ];
+				readOnlyProperties.status = lojaxResponse.status;
+				readOnlyProperties.statusText = LojaxAdapter.StatusTextByCode[ readOnlyProperties.status.toString()];
 				//? self.dispatchEvent({'currentTarget':self, 'target':self, 'type':'error',});
 				// Update 'readyState' last because it triggers 'readystatechange'.
 				self.readyState = XMLHttpRequest.DONE;
@@ -378,7 +382,7 @@ var LojaxRequest = (function LojaxRequest_module( window, LojaxAdapter, EventTar
 		});
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 	}
-	LojaxRequest.prototype = new window.XMLHttpRequest();
+	LojaxRequest.prototype = Object.create( window.XMLHttpRequest.prototype );
 	LojaxRequest.prototype.constructor = LojaxRequest;
 	Object.defineProperties( LojaxRequest, 
 	{
@@ -407,21 +411,29 @@ var LojaxRequest = (function LojaxRequest_module( window, LojaxAdapter, EventTar
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 /*var LojaxResponse = (function LojaxResponse_module( window, undefined )
 {
-	function LojaxResponse( method, url, status_code, status_text )
+	//function LojaxResponse( method, url, status_code, status_text )
+	function LojaxResponse( lojaxRequest )
 	{
+		if( !(lojaxRequest instanceof LojaxRequest))
+		{throw( new TypeError( "TODO" ));}
+		var readOnlyProperties = 
+		{
+			'method':null,
+			'url':null,
+			'xmlHttpRequest':lojaxRequest,
+		};
 		Object.defineProperties( this, 
 		{
 			'method':
 			{'enumerable':true, 'value':method, 'writable':false,},
 			'url':
 			{'enumerable':true, 'value':url, 'writable':false,},
-			'status':
-			{'enumerable':true, 'value':status_code, 'writable':false,},
-			'statusText':
-			{'enumerable':true, 'value':status_text, 'writable':false,},
+			'xmlHttpRequest':
+			{'enumerable':true, 'get':function xmlHttpRequest_getter()
+			{return( readOnlyProperties.xmlHttpRequest );},},
 		});
 	}
-	LojaxResponse.prototype = new Object();
+	LojaxResponse.prototype = Object.create( Object.prototype );
 	LojaxResponse.prototype.constructor = LojaxResponse;
 	return( LojaxResponse );
 })( window );*/

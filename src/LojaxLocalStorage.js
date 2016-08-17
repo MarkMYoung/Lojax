@@ -49,43 +49,61 @@ var LojaxLocalStorage = (function( window, LojaxAdapter, Lawnchair, undefined )
 					if( !!storedItem )
 					{
 						storageInstance.removeItem( row_key );
-						var lojaxResponse = {};
-						lojaxResponse[ LojaxAdapter.HttpStatus.NO_CONTENT ] = undefined;
+						// Changed to status 200 with deleted object.
+						//var lojaxResponse = {'response':undefined, 'status':LojaxAdapter.HttpStatus.NO_CONTENT};
+						var lojaxResponse = {'response':storedItem, 'status':LojaxAdapter.HttpStatus.OK};
 						//$deferred.resolve.call( this, lojaxResponse );
 						$deferred.resolveWith( this, [lojaxResponse, 'success', txParams.xhr]);
 					}
 					else
 					{
-						var lojaxResponse = {};
-						lojaxResponse[ LojaxAdapter.HttpStatus.NOT_FOUND ] = row_key;//undefined;
+						var lojaxResponse = {'response':row_key, 'status':LojaxAdapter.HttpStatus.NOT_FOUND};
 						//$deferred.reject.call( this, lojaxResponse );
 						$deferred.rejectWith( this, [txParams.xhr, 'error', lojaxResponse]);
 					}
 					break;
 				case 'GET':
-					var storedItem = storageInstance.getItem( row_key );
-					if( !!storedItem )
+					if( row_key === '*' )
 					{
-						//txParams.xhr.setResponseHeader( 'Last-Modified', (new Date()).toGMTString());
-						//window.console.debug( "Request headers:", txParams.requestHeaders );
-						var lojaxResponse = {};
-						// Parse as JSON unless plain text is expected.
+						var row_keys = [];
+						for( var i = 0; i < storageInstance.length; ++i )
+						{row_keys.push( storageInstance.key( i ));}
+						var storedItems = row_keys.map( function( each, n, every )
+						{storageInstance.getItem( each );}, this );
+
 						//TODO parse the Accept header more precisely
 						var accept_header = txParams.requestHeaders['Accept'];
-						var value = ((accept_header.indexOf( '*/*' ) > -1
+						// Parse as JSON unless plain text is expected.
+						var values = ((accept_header.indexOf( '*/*' ) > -1
 								|| accept_header.indexOf( 'application/json' ) > -1)
-							?(deserialize( storedItem )):(storedItem));
-						lojaxResponse[ LojaxAdapter.HttpStatus.OK ] = value;
-						//$deferred.resolve.call( this, lojaxResponse );
+							?(deserialize( storedItems )):(storedItems));
+						var lojaxResponse = {'response':values, 'status':LojaxAdapter.HttpStatus.OK};
 						$deferred.resolveWith( this, [lojaxResponse, 'success', txParams.xhr]);
 					}
 					else
 					{
-						var lojaxResponse = {};
-						lojaxResponse[ LojaxAdapter.HttpStatus.NOT_FOUND ] = row_key;//undefined;
-						//window.console.error( txParams );
-						//$deferred.reject.call( this, lojaxResponse );
-						$deferred.rejectWith( this, [txParams.xhr, 'error', lojaxResponse]);
+						var storedItem = storageInstance.getItem( row_key );
+						if( !!storedItem )
+						{
+							//txParams.xhr.setResponseHeader( 'Last-Modified', (new Date()).toGMTString());
+							//window.console.debug( "Request headers:", txParams.requestHeaders );
+							//TODO parse the Accept header more precisely
+							var accept_header = txParams.requestHeaders['Accept'];
+							// Parse as JSON unless plain text is expected.
+							var value = ((accept_header.indexOf( '*/*' ) > -1
+									|| accept_header.indexOf( 'application/json' ) > -1)
+								?(deserialize( storedItem )):(storedItem));
+							var lojaxResponse = {'response':value, 'status':LojaxAdapter.HttpStatus.OK};
+							//$deferred.resolve.call( this, lojaxResponse );
+							$deferred.resolveWith( this, [lojaxResponse, 'success', txParams.xhr]);
+						}
+						else
+						{
+							var lojaxResponse = {'response':row_key, 'status':LojaxAdapter.HttpStatus.NOT_FOUND};
+							//window.console.error( txParams );
+							//$deferred.reject.call( this, lojaxResponse );
+							$deferred.rejectWith( this, [txParams.xhr, 'error', lojaxResponse]);
+						}
 					}
 					break;
 				case 'POST':
@@ -97,8 +115,7 @@ var LojaxLocalStorage = (function( window, LojaxAdapter, Lawnchair, undefined )
 					var value = ((content_type_header.indexOf( 'application/json' ) > -1)
 						?(serialize( txParams.data )):(txParams.data));
 					storageInstance.setItem( row_key, value );
-					var lojaxResponse = {};
-					lojaxResponse[ LojaxAdapter.HttpStatus.CREATED ] = value;
+					var lojaxResponse = {'response':value, 'status':LojaxAdapter.HttpStatus.CREATED};
 					//$deferred.resolve.call( this, lojaxResponse );
 					$deferred.resolveWith( this, [lojaxResponse, 'success', txParams.xhr]);
 					break;
@@ -111,15 +128,13 @@ var LojaxLocalStorage = (function( window, LojaxAdapter, Lawnchair, undefined )
 					var value = ((content_type_header.indexOf( 'application/json' ) > -1)
 						?(serialize( txParams.data )):(txParams.data));
 					storageInstance.setItem( row_key, value );
-					var lojaxResponse = {};
-					lojaxResponse[ LojaxAdapter.HttpStatus.CREATED ] = value;
+					var lojaxResponse = {'response':value, 'status':LojaxAdapter.HttpStatus.CREATED};
 					//$deferred.resolve.call( this, lojaxResponse );
 					$deferred.resolveWith( this, [lojaxResponse, 'success', txParams.xhr]);
 					break;
 				default:
 					window.console.error( "Unexpected LojaxLocalStorage 'method' value:", txParams.method, "." );
-					var lojaxResponse = {};
-					lojaxResponse[ LojaxAdapter.HttpStatus.INTERNAL_SERVER_ERROR ] = txParams;//undefined;
+					var lojaxResponse = {'response':txParams, 'status':LojaxAdapter.HttpStatus.INTERNAL_SERVER_ERROR};
 					//$deferred.resolve.call( this, lojaxResponse );
 					$deferred.resolveWith( this, [lojaxResponse, 'success', txParams.xhr]);
 					break;
@@ -127,7 +142,7 @@ var LojaxLocalStorage = (function( window, LojaxAdapter, Lawnchair, undefined )
 			return( $deferred.promise());
 		};
 	}
-	LojaxLocalStorage.prototype = new LojaxAdapter();
+	LojaxLocalStorage.prototype = Object.create( LojaxAdapter.prototype );
 	LojaxLocalStorage.prototype.constructor = LojaxLocalStorage;
 	return( LojaxLocalStorage );
 })( window, LojaxAdapter, Lawnchair );
